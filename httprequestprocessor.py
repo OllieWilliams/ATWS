@@ -11,6 +11,7 @@ class HttpRequestProcessor:
         self.verb = ""
         self.path = ""
         self.done_with_headers = False
+        self.parameters = {}
 
     def keep_receiving(self):
         return self.continue_receiving
@@ -52,9 +53,24 @@ class HttpRequestProcessor:
     def extract_pre_header(self, headers_list):
         line = headers_list.pop(0)
         self.verb, self.path, version = line.split(" ")
+        path_parameters = self.path.split("?")
+        if len(path_parameters) > 1:
+            print("Params detected")
+            self.parameters = self.extract_parameters(path_parameters[1])
+            self.path = path_parameters[0]
         if version != "HTTP/1.1":
             raise Exception("Wrong Version" + version)
         return headers_list
+
+    @staticmethod
+    def extract_parameters(path_with_parameters):
+        parameter_dictionary = {}
+        list_of_parameter_pairs = path_with_parameters.split("&")
+        for parameter_pair in list_of_parameter_pairs:
+            key, value = parameter_pair.split("=")
+            parameter_dictionary[key] = value
+
+        return parameter_dictionary
 
     @staticmethod
     def construct_header_dict(header_strings):
